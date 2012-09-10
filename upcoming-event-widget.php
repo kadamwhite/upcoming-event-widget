@@ -155,6 +155,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 				width: 100px;
 				height: 85px;
 				float: right;
+				margin-left: 10px;
 				position: relative;
 				text-align: center;
 				font-family: Helvetica, Arial, sans-serif;
