@@ -29,10 +29,10 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 	function _bwp_upcoming_event_widget() {
 		$widget_ops = array(
 			'classname' => '_bwp_upcoming_event_widget', // Rendered ID of widget
-			'description' => __('A widget that displays an alert for an upcoming event ', 'example')
+			'description' => __('A widget that displays an alert for an upcoming event ', 'bwpplugin')
 			);
 
-		$this->WP_Widget('_bwp_upcoming_event_widget', __('Upcoming Event', 'example'), $widget_ops );
+		$this->WP_Widget('_bwp_upcoming_event_widget', __('Upcoming Event', 'bwpplugin'), $widget_ops );
 	}
 
 	// Edit Widget form
@@ -40,37 +40,43 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 
 		//Set up some default widget settings.
 		$defaults = array(
-			'title' => __('Next Event', 'example'),
-			'date' => __('', 'example'),
-			'time' => __('', 'example'),
-			'description' => __('Our awesome monthly meetup', 'example')
+			'title' => __('Next Event', 'bwpplugin'),
+			'date' => __(0, 'bwpplugin'),
+			'time' => __('', 'bwpplugin'),
+			'description' => __('', 'bwpplugin')
 			);
 
 		$instance = wp_parse_args( (array) $instance, $defaults );
 
+		$date_format = 'l, F j Y';
 		$title = $instance['title'];
-		$date = date( 'l, F j Y', $instance['date'] );
+		$date = ( 0 == $instance['date'] ) ? '' : date( $date_format, $instance['date'] );
 		$time = $instance['time'];
 		$description = $instance['description'];
 
+		$date_is_in_past = ( strtotime( $date ) < time() );
+
 		?>
-		<p><?php _e('Title', 'example'); ?>: <input class="widefat" type="text"
+		<p class="invalid-date-warning" <?php if( !$date_is_in_past ) echo 'style="display:none;"'; ?>>
+			<em><strong>NOTICE:</strong> This widget will not display until the Date field has been set to a time in the future.</em>
+		</p>
+		<p><?php _e('Title', 'bwpplugin'); ?>: <input class="widefat" type="text"
 			id="<?php echo $this->get_field_id( 'title' ); ?>"
 			name="<?php echo $this->get_field_name( 'title' ); ?>"
 			value="<?php echo esc_attr( $title ); ?>" style="width:100%;" />
 		</p>
-		<p><?php _e('Date', 'example'); ?>: <input class="widefat datepicker" type="text"
-			placeholder="<?php echo __('Select event date', 'example'); ?>"
+		<p><?php _e('Date', 'bwpplugin'); ?>: <input class="widefat datepicker" type="text"
+			placeholder="<?php echo __('Select event date', 'bwpplugin'); ?>"
 			id="<?php echo $this->get_field_id( 'date' ); ?>"
 			name="<?php echo $this->get_field_name( 'date' ); ?>"
 			value="<?php echo esc_attr( $date ); ?>" style="width:100%;" />
 		</p>
-		<p><?php _e('Time', 'example'); ?>: <textarea class="widefat" type="text"
+		<p><?php _e('Time', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
 			id="<?php echo $this->get_field_id( 'time' ); ?>"
 			name="<?php echo $this->get_field_name( 'time' ); ?>"
 			style="width:100%;"><?php echo esc_attr( $time ); ?></textarea>
 		</p>
-		<p><?php _e('Event Description (optional)', 'example'); ?>: <textarea class="widefat" type="text"
+		<p><?php _e('Event Description (optional)', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
 			id="<?php echo $this->get_field_id( 'description' ); ?>"
 			name="<?php echo $this->get_field_name( 'description' ); ?>"
 			style="width:100%;"><?php echo esc_attr( $description ); ?></textarea>
@@ -113,17 +119,21 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 	function widget( $args, $instance ) {
 		extract( $args );
 
+		// Check to make sure we have a valid future date. Any invalid date
+		// causes strtotime (used to sanitize the input on the widget form) to
+		// return 'false': False means 0, which means January 1, 1970 in UNIX
+		// time, which is in the past. As such, if the timestamp of the stored
+		// date is less than the current time, then we don't show the widget.
+		if( $instance['date'] < time() ) {
+			return;
+		}
+
 		//Our variables from the widget settings.
 		$title = apply_filters( 'widget_title', $instance['title'] );
 		$month = empty( $instance['date'] ) ? '' : date( 'F', $instance['date'] );
 		$day = empty( $instance['date'] ) ? '' : date( 'j', $instance['date'] );
 		$time = empty( $instance['time'] ) ? '' : $instance['time'];
 		$description = empty( $instance['description'] ) ? '' : $instance['description'];
-
-		// TODO: Return without rendering if...
-		// (a): Date is not set
-		// (b): Date is in the past
-		// (c): No description is given
 
 		echo $before_widget;
 
@@ -141,9 +151,9 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 		<?php
 
 		if ( $time )
-			printf( '<p>' . __('%1$s at %2$s', 'example') . '</p>', $time, 'location' );
+			printf( '<p>' . __('%1$s', 'bwpplugin') . '</p>', $time );
 		if ( $description )
-			printf( '<p class="event-description">' . __('%1$s.', 'example') . '</p>', $description );
+			printf( '<p class="event-description">' . __('%1$s.', 'bwpplugin') . '</p>', $description );
 
 		echo $after_widget;
 ?>
