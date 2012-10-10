@@ -74,7 +74,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 		$location = $instance['location'];
 		$description = $instance['description'];
 
-		$date_is_in_past = ( strtotime( $date ) < time() );
+		$date_is_in_past = ( date( strtotime( $date ) ) <= date( time() ) );
 
 		?>
 		<p class="invalid-date-warning" <?php if( !$date_is_in_past ) echo 'style="display:none;"'; ?>>
@@ -97,7 +97,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 				name="<?php echo $this->get_field_name( 'time' ); ?>"
 				value="<?php echo esc_attr( $time ); ?>" style="width:85px" />
 		</p>
-		<p><?php _e('Location', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
+		<p><?php _e('Location (link tags permitted)', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
 			id="<?php echo $this->get_field_id( 'location' ); ?>"
 			name="<?php echo $this->get_field_name( 'location' ); ?>"
 			style="width:100%;"><?php echo esc_attr( $location ); ?></textarea>
@@ -148,12 +148,13 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 	function widget( $args, $instance ) {
 		extract( $args );
 
-		// Check to make sure we have a valid future date. Any invalid date
+		// Check to make sure we have a valid (future) date. Any invalid date
 		// causes strtotime (used to sanitize the input on the widget form) to
 		// return 'false': False means 0, which means January 1, 1970 in UNIX
 		// time, which is in the past. As such, if the timestamp of the stored
 		// date is less than the current time, then we don't show the widget.
-		if( $instance['date'] < time() ) {
+		if( $instance['date'] + 86400 <= time() ) {
+			// current time is over a day in the future from the entered date
 			return;
 		}
 
@@ -229,9 +230,6 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 				background-color: white;
 				font-size: 50px;
 				line-height: 70px;
-			}
-			.bwp_upcoming_event_widget .event-description {
-				clear: both;
 			}
 		</style>
 <?php
