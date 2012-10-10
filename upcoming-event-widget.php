@@ -10,6 +10,21 @@ License: MIT / GPL2
 License URI:
 */
 
+/*
+// This is the format of a Google Calendar link
+// (No line breaks, it's just wrapped here for readability)
+<a href="http://www.google.com/calendar/event?action=TEMPLATE
+	&text=Boston%20Indies
+	&dates=20121012T230000Z/20121013T010000Z
+	&details=My%20description
+	&location=Bocoup%20Loft
+	&trp=false
+	&sprop=http%3A%2F%2Fwww.bostonindies.com
+	&sprop=name:Boston%20Indies" target="_blank">
+	<img src="//www.google.com/calendar/images/ext/gc_button1.gif" border=0>
+	</a>
+*/
+
 function _bwp_upcoming_event_register_widget() {
 	register_widget( '_bwp_upcoming_event_widget' );
 }
@@ -43,6 +58,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 			'title' => __('Next Event', 'bwpplugin'),
 			'date' => __(0, 'bwpplugin'),
 			'time' => __('', 'bwpplugin'),
+			'location' => __('', 'bwpplugin'),
 			'description' => __('', 'bwpplugin')
 			);
 
@@ -52,6 +68,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 		$title = $instance['title'];
 		$date = ( 0 == $instance['date'] ) ? '' : date( $date_format, $instance['date'] );
 		$time = $instance['time'];
+		$location = $instance['location'];
 		$description = $instance['description'];
 
 		$date_is_in_past = ( strtotime( $date ) < time() );
@@ -75,6 +92,11 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 			id="<?php echo $this->get_field_id( 'time' ); ?>"
 			name="<?php echo $this->get_field_name( 'time' ); ?>"
 			style="width:100%;"><?php echo esc_attr( $time ); ?></textarea>
+		</p>
+		<p><?php _e('Location', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
+			id="<?php echo $this->get_field_id( 'location' ); ?>"
+			name="<?php echo $this->get_field_name( 'location' ); ?>"
+			style="width:100%;"><?php echo esc_attr( $location ); ?></textarea>
 		</p>
 		<p><?php _e('Event Description (optional)', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
 			id="<?php echo $this->get_field_id( 'description' ); ?>"
@@ -110,6 +132,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 		// Store time as UNIX timestamp
 		$instance['date'] = strtotime( strip_tags( $new_instance['date'] ) );
 		$instance['time'] = strip_tags( $new_instance['time'] );
+		$instance['location'] = strip_tags( $new_instance['location'], '<a>' );
 		$instance['description'] = strip_tags( $new_instance['description'] );
 
 		return $instance;
@@ -133,6 +156,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 		$month = empty( $instance['date'] ) ? '' : date( 'F', $instance['date'] );
 		$day = empty( $instance['date'] ) ? '' : date( 'j', $instance['date'] );
 		$time = empty( $instance['time'] ) ? '' : $instance['time'];
+		$location = empty( $instance['location'] ) ? '' : $instance['location'];
 		$description = empty( $instance['description'] ) ? '' : $instance['description'];
 
 		echo $before_widget;
@@ -150,7 +174,10 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 		</div>
 		<?php
 
-		if ( $time )
+		if ( $time && $location )
+			printf( '<p>' . __('%1$s', 'bwpplugin') . ' at ' . __('%2$s', 'bwpplugin') . '</p>', $time, $location );
+		// TODO: This fallback can probably be removed, it is logical for time and location to both be required
+		else if ( $time )
 			printf( '<p>' . __('%1$s', 'bwpplugin') . '</p>', $time );
 		if ( $description )
 			printf( '<p class="event-description">' . __('%1$s.', 'bwpplugin') . '</p>', $description );
@@ -179,10 +206,10 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 				top: -20px;
 				width: 100%;
 				-webkit-transform: rotate(5deg) translate3d(0, 0, 0);
-				-moz-transform:    rotate(5deg) translate3d(0, 0, 0);
-				-ms-transform:     rotate(5deg) translate3d(0, 0, 0);
-				-o-transform:      rotate(5deg) translate3d(0, 0, 0);
-				transform:         rotate(5deg) translate3d(0, 0, 0);
+				-moz-transform:	rotate(5deg) translate3d(0, 0, 0);
+				-ms-transform:	 rotate(5deg) translate3d(0, 0, 0);
+				-o-transform:	  rotate(5deg) translate3d(0, 0, 0);
+				transform:		 rotate(5deg) translate3d(0, 0, 0);
 			}
 			.bwp_upcoming_event_widget .event-date .month {
 				background-color: red;
