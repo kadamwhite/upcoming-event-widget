@@ -34,8 +34,11 @@ function _bwp_enqueue_scripts($hook) {
 	if( 'widgets.php' != $hook)
 		return;
 	wp_enqueue_script( 'jquery-ui-datepicker' );
-	wp_enqueue_style( 'wp-jquery-ui-dialog' );
 	wp_enqueue_style( 'jquery-ui-datepicker', plugins_url( '/css/jquery-ui-1.8.23.custom.css', __FILE__ ), false ); // Inside a plugin
+	// Timepicker script is from https://github.com/jonthornton/jquery-timepicker
+	wp_enqueue_script( 'jquery-ui-timepicker', plugins_url( '/js/jquery.timepicker.min.js', __FILE__ ) ); // Inside a plugin
+	wp_enqueue_style( 'jquery-ui-timepicker', plugins_url( '/css/jquery.timepicker.css', __FILE__ ), false ); // Inside a plugin
+	wp_enqueue_style( 'wp-jquery-ui-dialog' );
 }
 add_action( 'admin_enqueue_scripts', '_bwp_enqueue_scripts' );
 
@@ -64,7 +67,7 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 
 		$instance = wp_parse_args( (array) $instance, $defaults );
 
-		$date_format = 'l, F j Y';
+		$date_format = 'D, n/j/y';
 		$title = $instance['title'];
 		$date = ( 0 == $instance['date'] ) ? '' : date( $date_format, $instance['date'] );
 		$time = $instance['time'];
@@ -82,16 +85,17 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 			name="<?php echo $this->get_field_name( 'title' ); ?>"
 			value="<?php echo esc_attr( $title ); ?>" style="width:100%;" />
 		</p>
-		<p><?php _e('Date', 'bwpplugin'); ?>: <input class="widefat datepicker" type="text"
-			placeholder="<?php echo __('Select event date', 'bwpplugin'); ?>"
-			id="<?php echo $this->get_field_id( 'date' ); ?>"
-			name="<?php echo $this->get_field_name( 'date' ); ?>"
-			value="<?php echo esc_attr( $date ); ?>" style="width:100%;" />
-		</p>
-		<p><?php _e('Time', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
-			id="<?php echo $this->get_field_id( 'time' ); ?>"
-			name="<?php echo $this->get_field_name( 'time' ); ?>"
-			style="width:100%;"><?php echo esc_attr( $time ); ?></textarea>
+		<p><?php _e('Event Date & Time', 'bwpplugin'); ?>:<br />
+			<input class="widefat datepicker" type="text"
+				placeholder="<?php echo __('Select date', 'bwpplugin'); ?>"
+				id="<?php echo $this->get_field_id( 'date' ); ?>"
+				name="<?php echo $this->get_field_name( 'date' ); ?>"
+				value="<?php echo esc_attr( $date ); ?>" style="width:120px;" /> @
+			<input class="widefat timepicker" type="text"
+				placeholder="<?php echo __('Select time', 'bwpplugin'); ?>"
+				id="<?php echo $this->get_field_id( 'time' ); ?>"
+				name="<?php echo $this->get_field_name( 'time' ); ?>"
+				value="<?php echo esc_attr( $time ); ?>" style="width:85px" />
 		</p>
 		<p><?php _e('Location', 'bwpplugin'); ?>: <textarea class="widefat" type="text"
 			id="<?php echo $this->get_field_id( 'location' ); ?>"
@@ -118,6 +122,8 @@ class _bwp_upcoming_event_widget extends WP_Widget {
 					.datepicker({
 						dateFormat: 'DD, MM d yy'
 					});
+				$('.timepicker')
+					.timepicker();
 			});
 	   </script>
 		<?php
